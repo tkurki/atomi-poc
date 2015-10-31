@@ -41,7 +41,7 @@ const TextInput = textAtom =>
   textAtom.map(text =>
     <input type="text"
            value={text}
-           onChange={e => atom.reset(e.target.value)}/>)
+           onChange={e => textAtom.reset(e.target.value)}/>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
