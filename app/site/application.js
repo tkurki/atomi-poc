@@ -1,6 +1,6 @@
 import React from "react"
 import Bacon from "baconjs"
-import {findIndex} from "lodash"
+import {findIndex, flatten} from "lodash"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,10 +37,13 @@ const Checkbox = boolAtom =>
            onChange={_ => boolAtom.reset(!bool)}
            checked={bool}/>)
 
-const TextInput = textAtom =>
-  textAtom.map(text =>
-    <input type="text"
+const TextInput = ({type, placeholder, disableds, text: textAtom}) =>
+  Bacon.combineWith(disableds || Bacon.constant(false), textAtom,
+                    (disabled, text) =>
+    <input type={type || "text"}
            value={text}
+           placeholder={placeholder || ""}
+           disabled={disabled}
            onChange={e => textAtom.reset(e.target.value)}/>)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,14 +74,67 @@ const ThreeCounters = sharedCountAtom =>
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const LoginModel = () => {
+  const usernameAtom = Atom("")
+  const passwordAtom = Atom("")
+  const loginStatusAtom = Atom("logged-out")
+  const login = _  =>
+    loginStatusAtom.reset("request") &&
+    Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
+                      username === "Atomi" &&
+                      password === "Rulez")
+        .take(1)
+        .flatMap(s => Bacon.later(2000, s))
+        .onValue(s => loginStatusAtom.reset(s ? "logged-in" : "failed"))
+  const logout = _ => loginStatusAtom.reset("logged-out")
+  return {usernameAtom: usernameAtom,
+          passwordAtom: passwordAtom,
+          loginStatusStream: loginStatusAtom,
+          login: login,
+          logout: logout}
+}
+
+const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =>
+  loginStatusStream.flatMapLatest(loginStatus => {
+    switch (loginStatus) {
+    case "logged-in":
+      return Bacon.constant(<button onClick={logout}>Logout</button>)
+    case "request":
+      return Bacon.constant(<div>Attempting login...</div>)
+    default:
+      return Bacon.combineTemplate({
+        usernameEdit: TextInput({placeholder: "username", text: usernameAtom}),
+        passwordEdit: TextInput({type: "password",
+                                 placeholder: "password",
+                                 text: passwordAtom}),
+        issues: Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
+                                  flatten([username.length > 0 ? [] : ["Name?"],
+                                           password.length > 0 ? [] : ["Pass?"]])),
+      }).map(s =>
+           <div>
+             {s.usernameEdit}<br/>
+             {s.passwordEdit}<br/>
+             <button onClick={login}
+                     disabled={s.issues.length > 0}>
+               {s.issues.length > 0 ? s.issues.join(' ') : "Login"}
+             </button>
+           </div>)
+    }})
+
+////////////////////////////////////////////////////////////////////////////////
+
 export default () => {
+
   const pages =
     [{value: "Counter",
       path: "/page/counter",
       DOMs: Counter(Atom(0))},
      {value: "ThreeCounters",
       path: "/page/three-counters",
-      DOMs: ThreeCounters(Atom(0))}]
+      DOMs: ThreeCounters(Atom(0))},
+     {value: "Login",
+      path: "/page/login",
+      DOMs: Login(LoginModel())}]
 
   const path = document.location.pathname
   const pageAtom =
