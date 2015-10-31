@@ -1,0 +1,63 @@
+{
+  "name": "atomi-poc",
+  "version": "0.1.0",
+  "author": "Vesa Karvonen <vesa.a.j.k@gmail.com>",
+  "contributors": [{
+    "name": "Matti Lankinen",
+    "email": "m.lankinen@iki.fi"
+  }],
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+    "test": "npm run lint && npm run tape:all | faucet",
+    "prepublish": "npm run bundle",
+    "tape:all": "npm run tape -- test/**/*Test.js",
+    "tape": "babel-tape-runner",
+    "lint": "eslint app test",
+    "bundle": "LESS_COMPRESSION='-x' npm run bundle:js && npm run bundle:css",
+    "bundle:js": "browserify app/site/site.js -t babelify -g envify -g uglifyify > public/bundle.js",
+    "bundle:css": "lessc $LESS_COMPRESSION app/site/site.less > .bundle.css && mv .bundle.css public/bundle.css",
+    "watch": "npm run watch:server & npm run watch:js & npm run watch:css & npm run livereload:css & wait",
+    "watch:server": "nodemon -e js --watch app app.js",
+    "watch:js": "watchify app/site/site.js -v -t [ babelify --sourceMaps=inline ] -g envify -p livereactload -o public/bundle.js",
+    "watch:css": "npm run bundle:css && watch-run -p 'app/site/**/*.less' 'npm run bundle:css'",
+    "livereload:css": "node --eval \"require('livereload').createServer({exclusions: ['.js']}).watch('public')\""
+  },
+  "dependencies": {
+    "babel": "5.8.23",
+    "babelify": "6.3.0",
+    "baconjs": "0.7.75",
+    "body-parser": "1.14.1",
+    "browserify": "11.2.0",
+    "compression": "1.6.0",
+    "envify": "3.4.0",
+    "express": "4.13.3",
+    "hogan.js": "3.0.2",
+    "less": "2.5.3",
+    "livereload": "0.3.7",
+    "lodash": "^3.10.1",
+    "react": "0.14.0",
+    "react-dom": "^0.14.0",
+    "serve-static": "1.10.0",
+    "uglifyify": "3.0.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "4.1.3",
+    "babel-plugin-react-transform": "1.1.1",
+    "babel-tape-runner": "1.2.0",
+    "eslint": "1.6.0",
+    "eslint-plugin-react": "3.5.1",
+    "faucet": "0.0.1",
+    "livereactload": "2.0.1",
+    "mocha": "2.3.3",
+    "nodemon": "1.7.1",
+    "react-proxy": "1.1.1",
+    "tape": "4.2.1",
+    "watch-run": "1.2.2",
+    "watchify": "3.4.0"
+  },
+  "engines": {
+    "node": "0.12.x"
+  }
+}

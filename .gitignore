@@ -1,0 +1,13 @@
+.DS_Store
+
+node_modules
+*.log
+
+# IDEs
+.idea
+*.iml
+
+# bundled assets
+public/.bundle*
+public/bundle*
+public/bundle.css
