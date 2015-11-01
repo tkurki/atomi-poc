@@ -72,8 +72,7 @@ form of a *stream of values* and the state can be mutated via the `swap`
 operation.
 
 An atom can be implemented in just a few lines of code.  Here is a POC
-implementation of `Atom` using
-Bacon.js[*](https://github.com/baconjs/bacon.js/):
+implementation of `Atom` using [Bacon.js](https://github.com/baconjs/bacon.js/):
 
 ```js
 function Atom(initial) {
@@ -103,3 +102,18 @@ it is typically easy to (even accidentally) create new or duplicate existing
 state and there is typically nothing to express dependencies on state.
 Fortunately we are not constrained to use such broken approaches!  State can be
 both simple and easy.
+
+## Background
+
+Matti Lankinen pointed out that recreating all Virtual DOM on state changes, as
+is typically done in the [megablob](https://github.com/milankinen/megablob)
+architecture, is inefficient and it would be better to compose streams of
+virtual DOM.  Atomi was formed by refactoring sample code that Matti provided.
+
+The `Atom` abstraction is a minimum effort way to bring a model similar to what
+can be found in [Reagent](https://reagent-project.github.io/), which implements
+a simpler [SAC](http://www.umut-acar.org/self-adjusting-computation)-style (
+rather than FRP-style) abstraction without the concept of time, and WebSharper
+[UI.Next](http://intellifactory.github.io/websharper.ui.next.samples), which
+takes the idea even further in the form of reactive (rather than just virtual)
+DOM.
