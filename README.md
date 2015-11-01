@@ -109,7 +109,9 @@ both simple and easy.
 Virtual DOM on state changes, as is typically done in the
 [megablob](https://github.com/milankinen/megablob) architecture, is inefficient
 and it would be better to compose streams of virtual DOM.  Atomi was formed by
-refactoring sample code that Matti provided.
+refactoring
+[sample code](https://gist.github.com/milankinen/3f045eaf840afd12fefb) that
+Matti provided.
 
 The `Atom` abstraction is a minimum effort way to bring a model similar to what
 can be found in [Reagent](https://reagent-project.github.io/), which implements
