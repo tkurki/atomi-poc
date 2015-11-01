@@ -78,20 +78,18 @@ const LoginModel = () => {
   const usernameAtom = Atom("")
   const passwordAtom = Atom("")
   const loginStatusAtom = Atom("logged-out")
-  const login = _  =>
-    loginStatusAtom.reset("request") &&
-    Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
-                      username === "Atomi" &&
-                      password === "Rulez")
-        .take(1)
-        .flatMap(s => Bacon.later(2000, s))
-        .onValue(s => loginStatusAtom.reset(s ? "logged-in" : "failed"))
-  const logout = _ => loginStatusAtom.reset("logged-out")
-  return {usernameAtom: usernameAtom,
-          passwordAtom: passwordAtom,
+  return {usernameAtom,
+          passwordAtom,
           loginStatusStream: loginStatusAtom,
-          login: login,
-          logout: logout}
+          login: _  =>
+            loginStatusAtom.reset("request") &&
+            Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
+                              username === "Atomi" &&
+                              password === "Rulez")
+              .take(1)
+              .flatMap(s => Bacon.later(2000, s))
+              .onValue(s => loginStatusAtom.reset(s ? "logged-in" : "failed")),
+          logout: _ => loginStatusAtom.reset("logged-out")}
 }
 
 const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =>
