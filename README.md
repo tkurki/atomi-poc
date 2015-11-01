@@ -115,8 +115,8 @@ Matti provided.
 
 The `Atom` abstraction is a minimum effort way to bring a model similar to what
 can be found in [Reagent](https://reagent-project.github.io/), which implements
-a simpler [SAC](http://www.umut-acar.org/self-adjusting-computation)-style (
-rather than FRP-style) abstraction without the concept of time, and WebSharper
+a simpler [SAC](http://www.umut-acar.org/self-adjusting-computation)-style
+(rather than FRP-style) abstraction without the concept of time, and WebSharper
 [UI.Next](http://intellifactory.github.io/websharper.ui.next.samples), which
 takes the idea even further in the form of reactive (rather than just virtual)
 DOM.
