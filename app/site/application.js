@@ -136,20 +136,26 @@ export default () => {
       path: "/page/login",
       DOMs: Login(LoginModel())}]
 
-  const path = document.location.pathname
-  const pageAtom =
-    Atom(pages[Math.max(0, findIndex(pages, p => path.indexOf(p.path) === 0))])
+  const pageIndexOfLocation = () => {
+    const path = document.location.pathname
+    return Math.max(0, findIndex(pages, p => path.indexOf(p.path) === 0))
+  }
+  const pageAtom = Atom(pages[pageIndexOfLocation()])
   const pageSelectDOMs = EnumSelectInput(pages, pageAtom)
 
+  window.onpopstate = e => pageAtom.reset(pages[pageIndexOfLocation()])
+
   return pageAtom
-    .flatMapLatest(page =>
-       window.history.replaceState(null, "", page.path) ||
-       Bacon.combineWith(
-         pageSelectDOMs, page.DOMs,
-         (pageSelectDOM, pageDOM) =>
-           <div>
-             {pageSelectDOM}
-             <hr/>
-             {pageDOM}
-           </div>))
+    .flatMapLatest(page => {
+      if (document.location.pathname !== page.path)
+        window.history.pushState(null, "", page.path)
+      return Bacon.combineWith(
+        pageSelectDOMs, page.DOMs,
+        (pageSelectDOM, pageDOM) =>
+          <div>
+            {pageSelectDOM}
+            <hr/>
+            {pageDOM}
+          </div>)
+    })
 }
