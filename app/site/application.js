@@ -155,6 +155,60 @@ const BMI = ({weightAtom, heightAtom, bmiStream}) => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const ThreeWayBMIModel = () => {
+  const complete = m => {
+    if (m.weight && m.height) {
+      return {...m, bmi: Math.round(m.weight/(m.height * m.height * 0.0001))}
+    } else if (m.weight && m.bmi) {
+      return {...m, height: Math.round(Math.sqrt(m.weight/m.bmi)*100)}
+    } else {
+      return {...m, weight: Math.round(m.bmi * m.height * m.height * 0.0001)}
+    }
+  }
+
+  const modelAtom = Atom(complete({weight: 70, height: 170}))
+  const setBus = new Bacon.Bus()
+  setBus.onValue(m => modelAtom.reset(complete(m)))
+
+  return {setBus, modelStream: modelAtom}
+}
+
+const ThreeWayBMI = ({setBus, modelStream}) => {
+  const lockedAtom = Atom('bmi')
+
+  const Slider = (title, units, prop, min, max) =>
+    Bacon.combineWith(modelStream, lockedAtom, (model, locked) =>
+      <div>
+        <input type="checkbox"
+               onChange={_ => lockedAtom.reset(prop)}
+               disabled={locked === prop}
+               checked={locked === prop}/>
+        {title}: {model[prop]}{units}
+        <div>
+          <input type="range" min={min} max={max} value={model[prop]}
+             disabled={locked === prop}
+             onChange={e => {
+               const m = {weight: model.weight, height: model.height, bmi: model.bmi}
+               delete m[locked]
+               m[prop] = e.target.value
+               setBus.push(m)}}/>
+        </div>
+      </div>)
+
+  return Bacon.combineWith(
+    Slider("Weight", "kg", 'weight', 40, 140),
+    Slider("Height", "cm", 'height', 140, 210),
+    Slider("BMI: ", "kg/m^2", 'bmi', 10, 40),
+    (weightSlider, heightSlider, bmiSlider) =>
+      <div>
+        {weightSlider}
+        {heightSlider}
+        {bmiSlider}
+      </div>)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 export default () => {
 
   const pages =
@@ -167,6 +221,9 @@ export default () => {
      {value: "BMI",
       path: "/page/bmi",
       DOMs: BMI(BMIModel())},
+     {value: "3-way BMI",
+      path: "/page/3-way-bmi",
+      DOMs: ThreeWayBMI(ThreeWayBMIModel())},
      {value: "Login",
       path: "/page/login",
       DOMs: Login(LoginModel())}]
