@@ -296,8 +296,9 @@ export default () => {
       DOMs: ComponentList(Atom([]))}]
 
   const pageIndexOfLocation = () => {
-    const path = document.location.pathname
-    return Math.max(0, findIndex(pages, p => path.indexOf(p.path) === 0))
+    let path = /^\/page\/[a-z0-9_-]+/.exec(document.location.pathname)
+    path = path ? path[0] : ""
+    return Math.max(0, findIndex(pages, p => path === p.path))
   }
   const pageAtom = Atom(pages[pageIndexOfLocation()])
   const pageSelectDOMs = EnumSelectInput(pages, pageAtom)
