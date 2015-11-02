@@ -1,20 +1,11 @@
 import React from "react"
 import Bacon from "baconjs"
+import {Model} from "bacon.model"
 import {findIndex, flatten, map} from "lodash"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function Atom(initial) {
-  const bus = new Bacon.Bus()
-  const stream = bus.scan(initial, (state, fn) => fn(state))
-  stream.reset = v => bus.push(_ => v)
-  stream.swap = fn => bus.push(fn)
-  return stream
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-const EnumSelectInput = (alts, selAtom) => {
+const EnumSelectInput = (alts, selModel) => {
   const options = alts
     .map(alt =>
        <option key={alt.value}
@@ -22,49 +13,49 @@ const EnumSelectInput = (alts, selAtom) => {
          {alt.value}
        </option>)
 
-  return selAtom.map(alt =>
+  return selModel.map(alt =>
     <select value={alt.value}
             onChange={e =>
-             selAtom.reset(alts[
+             selModel.set(alts[
                findIndex(alts,
                          alt => alt.value === e.target.value)])}>
       {options}
     </select>)}
 
-const Checkbox = boolAtom =>
-  boolAtom.map(bool =>
+const Checkbox = boolModel =>
+  boolModel.map(bool =>
     <input type="checkbox"
-           onChange={_ => boolAtom.reset(!bool)}
+           onChange={_ => boolModel.set(!bool)}
            checked={bool}/>)
 
-const TextInput = ({type, placeholder, disableds, text: textAtom}) =>
-  Bacon.combineWith(disableds || Bacon.constant(false), textAtom,
+const TextInput = ({type, placeholder, disableds, text: textModel}) =>
+  Bacon.combineWith(disableds || Bacon.constant(false), textModel,
                     (disabled, text) =>
     <input type={type || "text"}
            value={text}
            placeholder={placeholder || ""}
            disabled={disabled}
-           onChange={e => textAtom.reset(e.target.value)}/>)
+           onChange={e => textModel.set(e.target.value)}/>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const Counter = countAtom =>
-  countAtom.map(count =>
+const Counter = countModel =>
+  countModel.map(count =>
     <div>
       Counter value is: {count}
       <div>
-        <button onClick={_ => countAtom.reset(count+1)}>+</button>
-        <button onClick={_ => countAtom.reset(count-1)}>-</button>
+        <button onClick={_ => countModel.set(count+1)}>+</button>
+        <button onClick={_ => countModel.set(count-1)}>-</button>
       </div>
     </div>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const ThreeCounters = sharedCountAtom =>
+const ThreeCounters = sharedCountModel =>
   Bacon.combineTemplate({
-    counter1: Counter(sharedCountAtom),
-    counter2: Counter(sharedCountAtom),
-    counter3: Counter(Atom(1))
+    counter1: Counter(sharedCountModel),
+    counter2: Counter(sharedCountModel),
+    counter3: Counter(Model(1))
   }).map(s =>
     <div>
       {s.counter1}
@@ -75,24 +66,24 @@ const ThreeCounters = sharedCountAtom =>
 ////////////////////////////////////////////////////////////////////////////////
 
 const LoginModel = () => {
-  const usernameAtom = Atom("")
-  const passwordAtom = Atom("")
-  const loginStatusAtom = Atom("logged-out")
-  return {usernameAtom,
-          passwordAtom,
-          loginStatusStream: loginStatusAtom,
+  const usernameModel = Model("")
+  const passwordModel = Model("")
+  const loginStatusModel = Model("logged-out")
+  return {usernameModel,
+          passwordModel,
+          loginStatusStream: loginStatusModel,
           login: _  =>
-            loginStatusAtom.reset("request") &&
-            Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
-                              username === "Atomi" &&
-                              password === "Rulez")
+            loginStatusModel.set("request") &&
+            Bacon.combineWith(usernameModel, passwordModel, (username, password) =>
+                              username === "Model" &&
+                              password === "FTW")
               .take(1)
               .flatMap(s => Bacon.later(2000, s))
-              .onValue(s => loginStatusAtom.reset(s ? "logged-in" : "failed")),
-          logout: _ => loginStatusAtom.reset("logged-out")}
+              .onValue(s => loginStatusModel.set(s ? "logged-in" : "failed")),
+          logout: _ => loginStatusModel.set("logged-out")}
 }
 
-const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =>
+const Login = ({usernameModel, passwordModel, loginStatusStream, login, logout}) =>
   loginStatusStream.flatMapLatest(loginStatus => {
     switch (loginStatus) {
     case "logged-in":
@@ -101,11 +92,11 @@ const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =
       return Bacon.constant(<div>Attempting login...</div>)
     default:
       return Bacon.combineTemplate({
-        usernameEdit: TextInput({placeholder: "username", text: usernameAtom}),
+        usernameEdit: TextInput({placeholder: "username", text: usernameModel}),
         passwordEdit: TextInput({type: "password",
                                  placeholder: "password",
-                                 text: passwordAtom}),
-        issues: Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
+                                 text: passwordModel}),
+        issues: Bacon.combineWith(usernameModel, passwordModel, (username, password) =>
                                   flatten([username.length > 0 ? [] : ["Name?"],
                                            password.length > 0 ? [] : ["Pass?"]])),
       }).map(s =>
@@ -122,28 +113,28 @@ const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =
 ////////////////////////////////////////////////////////////////////////////////
 
 const BMIModel = () => {
-  const weightAtom = Atom(70)
-  const heightAtom = Atom(170)
-  return {weightAtom,
-          heightAtom,
-          bmiStream: Bacon.combineWith(weightAtom, heightAtom, (w, h) =>
+  const weightModel = Model(70)
+  const heightModel = Model(170)
+  return {weightModel,
+          heightModel,
+          bmiStream: Bacon.combineWith(weightModel, heightModel, (w, h) =>
                                        Math.round(w/(h * h * 0.0001)))}
 }
 
-const BMI = ({weightAtom, heightAtom, bmiStream}) => {
+const BMI = ({weightModel, heightModel, bmiStream}) => {
   const Slider = (title, units, min, max, atom) =>
     atom.map(value =>
       <div>
         {title}: {value}{units}
         <div>
           <input type="range" min={min} max={max} value={value}
-             onChange={e => atom.reset(e.target.value)}/>
+             onChange={e => atom.set(e.target.value)}/>
         </div>
       </div>)
 
   return Bacon.combineWith(
-    Slider("Weight", "kg", 40, 140, weightAtom),
-    Slider("Height", "cm", 140, 210, heightAtom),
+    Slider("Weight", "kg", 40, 140, weightModel),
+    Slider("Height", "cm", 140, 210, heightModel),
     bmiStream,
     (weightSlider, heightSlider, bmi) =>
       <div>
@@ -166,19 +157,19 @@ const ThreeWayBMIModel = () => {
     }
   }
 
-  const modelAtom = Atom({weight: 70, height: 170})
+  const modelModel = Model({weight: 70, height: 170})
 
-  return {modelAtom, completedStream: modelAtom.map(complete)}
+  return {modelModel, completedStream: modelModel.map(complete)}
 }
 
-const ThreeWayBMI = ({modelAtom, completedStream}) => {
-  const lockedAtom = Atom('bmi')
+const ThreeWayBMI = ({modelModel, completedStream}) => {
+  const lockedModel = Model('bmi')
 
   const Slider = (title, units, prop, min, max) =>
-    Bacon.combineWith(completedStream, lockedAtom, (c, locked) =>
+    Bacon.combineWith(completedStream, lockedModel, (c, locked) =>
       <div>
         <input type="checkbox"
-               onChange={_ => lockedAtom.reset(prop)}
+               onChange={_ => lockedModel.set(prop)}
                disabled={locked === prop}
                checked={locked === prop}/>
         {title}: {c[prop]}{units}
@@ -189,7 +180,7 @@ const ThreeWayBMI = ({modelAtom, completedStream}) => {
                const m = {weight: c.weight, height: c.height, bmi: c.bmi}
                delete m[locked]
                m[prop] = e.target.value
-               modelAtom.reset(m)}}/>
+               modelModel.set(m)}}/>
         </div>
       </div>)
 
@@ -207,17 +198,17 @@ const ThreeWayBMI = ({modelAtom, completedStream}) => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const ComponentList = componentsAtom => {
+const ComponentList = componentsModel => {
   const componentCreates =
     [{value: "ClassyCounter",
-      create: () => ClassyCounter(Atom(0))},
+      create: () => ClassyCounter(Model(0))},
      {value: "BMI",
       create: () => BMI(BMIModel())}]
 
-  const createAtom = Atom(componentCreates[0])
+  const createModel = Model(componentCreates[0])
 
   const componentList =
-    componentsAtom.flatMapLatest(
+    componentsModel.flatMapLatest(
       components =>
         Bacon.combineAsArray(components)
         .map(componentDOMs =>
@@ -227,15 +218,15 @@ const ComponentList = componentsAtom => {
           </ul>))
 
   return Bacon.combineWith(
-    EnumSelectInput(componentCreates, createAtom),
+    EnumSelectInput(componentCreates, createModel),
     componentList,
-    createAtom,
+    createModel,
     (componentSelect, componentList, create) =>
       <div>
         {componentSelect}
         <button
            onClick={_ =>
-             componentsAtom.swap(cs => cs.concat(create.create()))}>
+             componentsModel.modify(cs => cs.concat(create.create()))}>
           Create New
         </button>
         {componentList}
@@ -256,15 +247,15 @@ const DivClass = React.createClass({
   }
 })
 
-const ClassyCounter = countAtom =>
-  countAtom.map(count =>
+const ClassyCounter = countModel =>
+  countModel.map(count =>
     <DivClass
       didMount={() => console.log("componentDidMount!")}
       didUpdate={() => console.log("componentDidUpdate!")}>
       Counter value is: {count}
       <div>
-        <button onClick={_ => countAtom.reset(count+1)}>+</button>
-        <button onClick={_ => countAtom.reset(count-1)}>-</button>
+        <button onClick={_ => countModel.set(count+1)}>+</button>
+        <button onClick={_ => countModel.set(count-1)}>-</button>
       </div>
     </DivClass>)
 
@@ -275,13 +266,13 @@ export default () => {
   const pages =
     [{value: "Counter",
       path: "/page/counter",
-      DOMs: Counter(Atom(0))},
+      DOMs: Counter(Model(0))},
      {value: "ClassyCounter",
       path: "/page/classy-counter",
-      DOMs: ClassyCounter(Atom(0))},
+      DOMs: ClassyCounter(Model(0))},
      {value: "ThreeCounters",
       path: "/page/three-counters",
-      DOMs: ThreeCounters(Atom(0))},
+      DOMs: ThreeCounters(Model(0))},
      {value: "BMI",
       path: "/page/bmi",
       DOMs: BMI(BMIModel())},
@@ -293,19 +284,19 @@ export default () => {
       DOMs: Login(LoginModel())},
      {value: "Component List",
       path: "/page/component-list",
-      DOMs: ComponentList(Atom([]))}]
+      DOMs: ComponentList(Model([]))}]
 
   const pageIndexOfLocation = () => {
     let path = /^\/page\/[a-z0-9_-]+/.exec(document.location.pathname)
     path = path ? path[0] : ""
     return Math.max(0, findIndex(pages, p => path === p.path))
   }
-  const pageAtom = Atom(pages[pageIndexOfLocation()])
-  const pageSelectDOMs = EnumSelectInput(pages, pageAtom)
+  const pageModel = Model(pages[pageIndexOfLocation()])
+  const pageSelectDOMs = EnumSelectInput(pages, pageModel)
 
-  window.onpopstate = e => pageAtom.reset(pages[pageIndexOfLocation()])
+  window.onpopstate = e => pageModel.set(pages[pageIndexOfLocation()])
 
-  return pageAtom
+  return pageModel
     .flatMapLatest(page => {
       if (document.location.pathname !== page.path)
         window.history.pushState(null, "", page.path)

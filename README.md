@@ -21,8 +21,8 @@ const Counter = countAtom =>
     <div>
       Counter value is: {n}
       <div>
-        <button onClick={e => countAtom.swap(n => n+1)}>+</button>
-        <button onClick={e => countAtom.swap(n => n-1)}>-</button>
+        <button onClick={e => countAtom.modify(n => n+1)}>+</button>
+        <button onClick={e => countAtom.modify(n => n-1)}>-</button>
       </div>
     </div>)
 ```
@@ -68,7 +68,7 @@ the `ThreeCounters` component also encapsulates local state.
 ## Atomi
 
 An atom, by itself, represents *first-class state*.  The state is exposed in the
-form of a *stream of values* and the state can be mutated via the `swap`
+form of a *stream of values* and the state can be mutated via the `modify`
 operation.
 
 An atom can be implemented in just a few lines of code.  Here is a POC
@@ -78,10 +78,16 @@ implementation of `Atom` using [Bacon.js](https://github.com/baconjs/bacon.js/):
 function Atom(initial) {
   const bus = new Bacon.Bus()
   const stream = bus.scan(initial, (state, fn) => fn(state))
-  stream.swap = fn => bus.push(fn)
+  stream.modify = fn => bus.push(fn)
   return stream
 }
 ```
+
+In a way, the above 6 lines of code is basically *all* there is to Atomi.
+Except that even that much is not necessary, because
+[Bacon.Model](https://github.com/baconjs/bacon.model) already provides more than
+that.  So, Atomi can be seen as just a way to structure reactive web
+applications with Bacon.js and React.
 
 It is very important that atoms are first-class objects.  This makes it natural
 to *never duplicate state*, which is one major source of bugs in imperative
