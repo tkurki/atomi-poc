@@ -147,15 +147,10 @@ const BMI = ({weightModel, heightModel, bmiStream}) => {
 ////////////////////////////////////////////////////////////////////////////////
 
 const ThreeWayBMIModel = () => {
-  const complete = m => {
-    if (m.weight && m.height) {
-      return {...m, bmi: Math.round(m.weight / (m.height * m.height * 0.0001))}
-    } else if (m.weight && m.bmi) {
-      return {...m, height: Math.round(Math.sqrt(m.weight / m.bmi) * 100)}
-    } else {
-      return {...m, weight: Math.round(m.bmi * m.height * m.height * 0.0001)}
-    }
-  }
+  const complete = m =>
+    !m.bmi ? {...m, bmi: Math.round(m.weight / (m.height * m.height * 0.0001))}
+    : !m.height ? {...m, height: Math.round(Math.sqrt(m.weight / m.bmi) * 100)}
+    : {...m, weight: Math.round(m.bmi * m.height * m.height * 0.0001)}
 
   const modelModel = Model({weight: 70, height: 170})
 
