@@ -233,7 +233,8 @@ const ComponentList = componentsAtom => {
       <div>
         {componentSelect}
         <button
-           onClick={_ => componentsAtom.swap(cs => cs.concat([create.create()]))}>
+           onClick={_ =>
+             componentsAtom.swap(cs => cs.concat([create.create()]))}>
           Create New
         </button>
         {componentList}
