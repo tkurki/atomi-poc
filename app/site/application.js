@@ -209,8 +209,8 @@ const ThreeWayBMI = ({modelAtom, completedStream}) => {
 
 const ComponentList = componentsAtom => {
   const componentCreates =
-    [{value: "Counter",
-      create: () => Counter(Atom(0))},
+    [{value: "ClassyCounter",
+      create: () => ClassyCounter(Atom(0))},
      {value: "BMI",
       create: () => BMI(BMIModel())}]
 
