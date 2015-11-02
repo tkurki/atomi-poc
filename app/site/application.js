@@ -222,7 +222,8 @@ const ComponentList = componentsAtom => {
         Bacon.combineAsArray(components)
         .map(componentDOMs =>
           <ul>
-            {map(componentDOMs, componentDOM => <li>{componentDOM}</li>)}
+            {(i => map(componentDOMs, componentDOM =>
+               <li key={i++}>{componentDOM}</li>))(0)}
           </ul>))
 
   return Bacon.combineWith(
