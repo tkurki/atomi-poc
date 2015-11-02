@@ -244,12 +244,12 @@ const ComponentList = componentsAtom => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const CounterDiv = React.createClass({
+const DivClass = React.createClass({
   componentDidMount: function() {
-    console.log("componentDidMount")
+    this.props.didMount()
   },
   componentDidUpdate: function() {
-    console.log("componentDidUpdate")
+    this.props.didUpdate()
   },
   render: function() {
     return <div>{this.props.children}</div>
@@ -258,13 +258,15 @@ const CounterDiv = React.createClass({
 
 const ClassyCounter = countAtom =>
   countAtom.map(count =>
-    <CounterDiv>
+    <DivClass
+      didMount={() => console.log("componentDidMount!")}
+      didUpdate={() => console.log("componentDidUpdate!")}>
       Counter value is: {count}
       <div>
         <button onClick={_ => countAtom.reset(count+1)}>+</button>
         <button onClick={_ => countAtom.reset(count-1)}>-</button>
       </div>
-    </CounterDiv>)
+    </DivClass>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
