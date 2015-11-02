@@ -1,6 +1,6 @@
 import React from "react"
 import Bacon from "baconjs"
-import {findIndex, flatten} from "lodash"
+import {findIndex, flatten, map} from "lodash"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -158,9 +158,9 @@ const BMI = ({weightAtom, heightAtom, bmiStream}) => {
 const ThreeWayBMIModel = () => {
   const complete = m => {
     if (m.weight && m.height) {
-      return {...m, bmi: Math.round(m.weight/(m.height * m.height * 0.0001))}
+      return {...m, bmi: Math.round(m.weight / (m.height * m.height * 0.0001))}
     } else if (m.weight && m.bmi) {
-      return {...m, height: Math.round(Math.sqrt(m.weight/m.bmi)*100)}
+      return {...m, height: Math.round(Math.sqrt(m.weight / m.bmi) * 100)}
     } else {
       return {...m, weight: Math.round(m.bmi * m.height * m.height * 0.0001)}
     }
@@ -207,6 +207,42 @@ const ThreeWayBMI = ({modelAtom, completedStream}) => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const ComponentList = componentsAtom => {
+  const componentCreates =
+    [{value: "Counter",
+      create: () => Counter(Atom(0))},
+     {value: "BMI",
+      create: () => BMI(BMIModel())}]
+
+  const createAtom = Atom(componentCreates[0])
+
+  const componentList =
+    componentsAtom.flatMapLatest(
+      components =>
+        Bacon.combineAsArray(components)
+        .map(componentDOMs =>
+          <ul>
+            {map(componentDOMs, componentDOM => <li>{componentDOM}</li>)}
+          </ul>))
+
+  return Bacon.combineWith(
+    EnumSelectInput(componentCreates, createAtom),
+    componentList,
+    createAtom,
+    (componentSelect, componentList, create) =>
+      <div>
+        {componentSelect}
+        <button
+           onClick={_ => componentsAtom.swap(cs => cs.concat([create.create()]))}>
+          Create New
+        </button>
+        {componentList}
+      </div>)
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 export default () => {
 
   const pages =
@@ -224,7 +260,10 @@ export default () => {
       DOMs: ThreeWayBMI(ThreeWayBMIModel())},
      {value: "Login",
       path: "/page/login",
-      DOMs: Login(LoginModel())}]
+      DOMs: Login(LoginModel())},
+     {value: "Component List",
+      path: "/page/component-list",
+      DOMs: ComponentList(Atom([]))}]
 
   const pageIndexOfLocation = () => {
     const path = document.location.pathname
