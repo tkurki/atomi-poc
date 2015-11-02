@@ -166,32 +166,30 @@ const ThreeWayBMIModel = () => {
     }
   }
 
-  const modelAtom = Atom(complete({weight: 70, height: 170}))
-  const setBus = new Bacon.Bus()
-  setBus.onValue(m => modelAtom.reset(complete(m)))
+  const modelAtom = Atom({weight: 70, height: 170})
 
-  return {setBus, modelStream: modelAtom}
+  return {modelAtom, completedStream: modelAtom.map(complete)}
 }
 
-const ThreeWayBMI = ({setBus, modelStream}) => {
+const ThreeWayBMI = ({modelAtom, completedStream}) => {
   const lockedAtom = Atom('bmi')
 
   const Slider = (title, units, prop, min, max) =>
-    Bacon.combineWith(modelStream, lockedAtom, (model, locked) =>
+    Bacon.combineWith(completedStream, lockedAtom, (c, locked) =>
       <div>
         <input type="checkbox"
                onChange={_ => lockedAtom.reset(prop)}
                disabled={locked === prop}
                checked={locked === prop}/>
-        {title}: {model[prop]}{units}
+        {title}: {c[prop]}{units}
         <div>
-          <input type="range" min={min} max={max} value={model[prop]}
+          <input type="range" min={min} max={max} value={c[prop]}
              disabled={locked === prop}
              onChange={e => {
-               const m = {weight: model.weight, height: model.height, bmi: model.bmi}
+               const m = {weight: c.weight, height: c.height, bmi: c.bmi}
                delete m[locked]
                m[prop] = e.target.value
-               setBus.push(m)}}/>
+               modelAtom.reset(m)}}/>
         </div>
       </div>)
 
