@@ -37,8 +37,8 @@
     "less": "2.5.3",
     "livereload": "0.3.7",
     "lodash": "^3.10.1",
-    "react": "0.14.0",
-    "react-dom": "^0.14.0",
+    "react": "0.14.2",
+    "react-dom": "0.14.2",
     "serve-static": "1.10.0",
     "uglifyify": "3.0.1"
   },
