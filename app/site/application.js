@@ -244,12 +244,39 @@ const ComponentList = componentsAtom => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const CounterDiv = React.createClass({
+  componentDidMount: function() {
+    console.log("componentDidMount")
+  },
+  componentDidUpdate: function() {
+    console.log("componentDidUpdate")
+  },
+  render: function() {
+    return <div>{this.props.children}</div>
+  }
+})
+
+const ClassyCounter = countAtom =>
+  countAtom.map(count =>
+    <CounterDiv>
+      Counter value is: {count}
+      <div>
+        <button onClick={_ => countAtom.reset(count+1)}>+</button>
+        <button onClick={_ => countAtom.reset(count-1)}>-</button>
+      </div>
+    </CounterDiv>)
+
+////////////////////////////////////////////////////////////////////////////////
+
 export default () => {
 
   const pages =
     [{value: "Counter",
       path: "/page/counter",
       DOMs: Counter(Atom(0))},
+     {value: "ClassyCounter",
+      path: "/page/classy-counter",
+      DOMs: ClassyCounter(Atom(0))},
      {value: "ThreeCounters",
       path: "/page/three-counters",
       DOMs: ThreeCounters(Atom(0))},
