@@ -60,6 +60,57 @@ Just like the `Counter` component, the above combination of three counters is a
 function from a model to a stream of virtual DOM.  Unlike the simple counter,
 the `ThreeCounters` component also encapsulates local state.
 
+There are many more examples in this repository, but let's look at one more
+example, a simple BMI calculator component module
+[bmi.js](app/site/components/bmi.js):
+
+```js
+export const Model = () => {
+  const weightAtom = Atom(70)
+  const heightAtom = Atom(170)
+  return {weightAtom,
+          heightAtom,
+          bmiStream: Bacon.combineWith(weightAtom, heightAtom, (w, h) =>
+                                       Math.round(w/(h * h * 0.0001)))}
+}
+
+const Slider = (title, units, min, max, atom) =>
+  atom.map(value =>
+    <div>
+      {title}: {value}{units}
+      <div>
+        <input type="range" min={min} max={max} value={value}
+           onChange={e => atom.set(e.target.value)}/>
+      </div>
+    </div>)
+
+export const WebControl = ({weightAtom, heightAtom, bmiStream}) =>
+  Bacon.combineTemplate(
+    <div>
+      {Slider("Weight", "kg", 40, 140, weightAtom)}
+      {Slider("Height", "cm", 140, 210, heightAtom)}
+      BMI: {bmiStream}
+    </div>)
+```
+
+The idea is that component modules export `Model` and `WebControl` functions to
+create the model and the web control of the component.
+
+Notice how `WebControl` uses the auxiliary `Slider` component twice, passing it
+(with ease) one of the two atoms, `weightAtom` or `heightAtom`, to control.
+Just like other components, the auxiliary `Slider` simply returns a stream of
+virtual DOM.
+
+To use the `BMI` component, one could import it as
+
+```js
+import * as BMI from "bmi"
+```
+
+and create the stream of virtual DOM by writing `BMI.WebControl(BMI.Model())`.
+The resulting stream can then be combined into a more complex stream of virtual
+DOM or rendered to an element.
+
 ## Atomi
 
 An `Atom` by itself, represents *first-class state*.  The state is exposed in
