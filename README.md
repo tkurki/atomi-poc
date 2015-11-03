@@ -30,7 +30,7 @@ const Counter = countModel =>
 To use the component one simply passes it a model containing the count:
 
 ```js
-const counterDOMs = Counter(Model(0))
+const counterDOMs = Counter(Atom(0))
 ```
 
 The result is a *stream of React Virtual
@@ -51,7 +51,7 @@ const ThreeCounters = sharedCountModel =>
   Bacon.combineTemplate({
     counter1: Counter(sharedCountModel),
     counter2: Counter(sharedCountModel),
-    counter3: Counter(Model(1))
+    counter3: Counter(Atom(1))
   }).map(s =>
     <div>
       {s.counter1}
@@ -66,15 +66,15 @@ the `ThreeCounters` component also encapsulates local state.
 
 ## Atomi
 
-An atom, or `Model`, by itself, represents *first-class state*.  The state is
-exposed in the form of a *stream of values* and the state can be mutated via the
-`modify` operation.
+An `Atom` by itself, represents *first-class state*.  The state is exposed in
+the form of a *stream of values* and the state can be mutated via the `modify`
+operation.
 
 It can be implemented in just a few lines of code.  Here is a POC implementation
 using [Bacon.js](https://github.com/baconjs/bacon.js/):
 
 ```js
-function Model(initial) {
+function Atom(initial) {
   const bus = new Bacon.Bus()
   const stream = bus.scan(initial, (state, fn) => fn(state))
   stream.modify = fn => bus.push(fn)
@@ -83,10 +83,16 @@ function Model(initial) {
 ```
 
 In a way, the above 6 lines of code is basically *all* there is to Atomi.
-Except that even that much is not necessary, because
+Except that even that much is unnecessary, because
 [Bacon.Model](https://github.com/baconjs/bacon.model) already provides more than
-that.  So, Atomi can be seen as just a way to structure reactive web
-applications with Bacon.js and React.
+that, so one can just say
+
+```js
+import {Model as Atom} from "bacon.model"
+```
+
+and Atomi can be seen as just a way to structure reactive web applications with
+Bacon.js and React.
 
 It is very important that atoms are first-class objects.  This makes it natural
 to *never duplicate state*, which is one major source of bugs in imperative
@@ -118,7 +124,7 @@ refactoring
 [sample code](https://gist.github.com/milankinen/3f045eaf840afd12fefb) that
 Matti provided.
 
-The atom, or `Model`, abstraction is a minimum effort way to bring a model
+The `Atom`, or `Model`, abstraction is a minimum effort way to bring a model
 similar to what can be found in [Reagent](https://reagent-project.github.io/),
 which implements a simpler
 [SAC](http://www.umut-acar.org/self-adjusting-computation)-style (rather than
