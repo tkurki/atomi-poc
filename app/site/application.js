@@ -1,6 +1,6 @@
 import React from "react"
 import Bacon from "baconjs"
-import {Model} from "bacon.model"
+import {Model as Atom} from "bacon.model"
 import {findIndex, flatten, map} from "lodash"
 
 import * as ThreeWayBMI from "./components/three-way-bmi"
@@ -33,36 +33,36 @@ const Checkbox = boolModel =>
            onChange={_ => boolModel.set(!bool)}
            checked={bool}/>)
 
-const TextInput = ({type, placeholder, disableds, text: textModel}) =>
-  Bacon.combineWith(disableds || Bacon.constant(false), textModel,
+const TextInput = ({type, placeholder, disableds, text: textAtom}) =>
+  Bacon.combineWith(disableds || Bacon.constant(false), textAtom,
                     (disabled, text) =>
     <input type={type || "text"}
            value={text}
            placeholder={placeholder || ""}
            disabled={disabled}
-           onChange={e => textModel.set(e.target.value)}/>)
+           onChange={e => textAtom.set(e.target.value)}/>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
 const LoginModel = () => {
-  const usernameModel = Model("")
-  const passwordModel = Model("")
-  const loginStatusModel = Model("logged-out")
-  return {usernameModel,
-          passwordModel,
-          loginStatusStream: loginStatusModel,
+  const usernameAtom = Atom("")
+  const passwordAtom = Atom("")
+  const loginStatusAtom = Atom("logged-out")
+  return {usernameAtom,
+          passwordAtom,
+          loginStatusStream: loginStatusAtom,
           login: _  =>
-            loginStatusModel.set("request") &&
-            Bacon.combineWith(usernameModel, passwordModel, (username, password) =>
+            loginStatusAtom.set("request") &&
+            Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
                               username === "Model" &&
                               password === "FTW")
               .take(1)
               .flatMap(s => Bacon.later(2000, s))
-              .onValue(s => loginStatusModel.set(s ? "logged-in" : "failed")),
-          logout: _ => loginStatusModel.set("logged-out")}
+              .onValue(s => loginStatusAtom.set(s ? "logged-in" : "failed")),
+          logout: _ => loginStatusAtom.set("logged-out")}
 }
 
-const Login = ({usernameModel, passwordModel, loginStatusStream, login, logout}) =>
+const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =>
   loginStatusStream.flatMapLatest(loginStatus => {
     switch (loginStatus) {
     case "logged-in":
@@ -71,11 +71,11 @@ const Login = ({usernameModel, passwordModel, loginStatusStream, login, logout})
       return Bacon.constant(<div>Attempting login...</div>)
     default:
       return Bacon.combineTemplate({
-        usernameEdit: TextInput({placeholder: "username", text: usernameModel}),
+        usernameEdit: TextInput({placeholder: "username", text: usernameAtom}),
         passwordEdit: TextInput({type: "password",
                                  placeholder: "password",
-                                 text: passwordModel}),
-        issues: Bacon.combineWith(usernameModel, passwordModel, (username, password) =>
+                                 text: passwordAtom}),
+        issues: Bacon.combineWith(usernameAtom, passwordAtom, (username, password) =>
                                   flatten([username.length > 0 ? [] : ["Name?"],
                                            password.length > 0 ? [] : ["Pass?"]])),
       }).map(s =>
@@ -94,11 +94,11 @@ const Login = ({usernameModel, passwordModel, loginStatusStream, login, logout})
 const ComponentList = componentsModel => {
   const componentCreates =
     [{value: "ClassyCounter",
-      create: () => ClassyCounter(Model(0))},
+      create: () => ClassyCounter(Atom(0))},
      {value: "BMI",
       create: () => BMI.WebControl(BMI.Model())}]
 
-  const createModel = Model(componentCreates[0])
+  const createAtom = Atom(componentCreates[0])
 
   const componentList =
     componentsModel.flatMapLatest(
@@ -111,9 +111,9 @@ const ComponentList = componentsModel => {
           </ul>))
 
   return Bacon.combineWith(
-    EnumSelectInput(componentCreates, createModel),
+    EnumSelectInput(componentCreates, createAtom),
     componentList,
-    createModel,
+    createAtom,
     (componentSelect, componentList, create) =>
       <div>
         {componentSelect}
@@ -162,7 +162,7 @@ export default () => {
       DOMs: Counter.WebControl(Counter.Model(0))},
      {value: "ClassyCounter",
       path: "/page/classy-counter",
-      DOMs: ClassyCounter(Model(0))},
+      DOMs: ClassyCounter(Atom(0))},
      {value: "ThreeCounters",
       path: "/page/three-counters",
       DOMs: ThreeCounters.WebControl(ThreeCounters.Model(0))},
@@ -177,19 +177,19 @@ export default () => {
       DOMs: Login(LoginModel())},
      {value: "Component List",
       path: "/page/component-list",
-      DOMs: ComponentList(Model([]))}]
+      DOMs: ComponentList(Atom([]))}]
 
   const pageIndexOfLocation = () => {
     let path = /^\/page\/[a-z0-9_-]+/.exec(document.location.pathname)
     path = path ? path[0] : ""
     return Math.max(0, findIndex(pages, p => path === p.path))
   }
-  const pageModel = Model(pages[pageIndexOfLocation()])
-  const pageSelectDOMs = EnumSelectInput(pages, pageModel)
+  const pageAtom = Atom(pages[pageIndexOfLocation()])
+  const pageSelectDOMs = EnumSelectInput(pages, pageAtom)
 
-  window.onpopstate = e => pageModel.set(pages[pageIndexOfLocation()])
+  window.onpopstate = e => pageAtom.set(pages[pageIndexOfLocation()])
 
-  return pageModel
+  return pageAtom
     .flatMapLatest(page => {
       if (document.location.pathname !== page.path)
         window.history.pushState(null, "", page.path)
