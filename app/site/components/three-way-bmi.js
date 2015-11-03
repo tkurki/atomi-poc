@@ -35,14 +35,10 @@ export const WebControl = ({partialAtom, completedStream}) => {
         </div>
       </div>)
 
-  return Bacon.combineWith(
-    Slider("Weight", "kg", 'weight', 40, 140),
-    Slider("Height", "cm", 'height', 140, 210),
-    Slider("BMI: ", "kg/m^2", 'bmi', 10, 40),
-    (weightSlider, heightSlider, bmiSlider) =>
-      <div>
-        {weightSlider}
-        {heightSlider}
-        {bmiSlider}
-      </div>)
+  return Bacon.combineTemplate(
+    <div>
+      {Slider("Weight", "kg", 'weight', 40, 140)}
+      {Slider("Height", "cm", 'height', 140, 210)}
+      {Slider("BMI: ", "kg/m^2", 'bmi', 10, 40)}
+    </div>)
 }
