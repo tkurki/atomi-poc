@@ -48,15 +48,11 @@ three counters:
 
 ```js
 const ThreeCounters = sharedCountModel =>
-  Bacon.combineTemplate({
-    counter1: Counter(sharedCountModel),
-    counter2: Counter(sharedCountModel),
-    counter3: Counter(Atom(1))
-  }).map(s =>
+  Bacon.combineTemplate(
     <div>
-      {s.counter1}
-      {s.counter2}
-      {s.counter3}
+      {Counter(sharedCountModel)}
+      {Counter(sharedCountModel)}
+      {Counter(Atom(1))}
     </div>)
 ```
 
