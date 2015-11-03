@@ -5,6 +5,8 @@ import {findIndex, flatten, map} from "lodash"
 
 import * as ThreeWayBMI from "./components/three-way-bmi"
 import * as BMI from "./components/bmi"
+import * as Counter from "./components/counter"
+import * as ThreeCounters from "./components/three-counters"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -39,32 +41,6 @@ const TextInput = ({type, placeholder, disableds, text: textModel}) =>
            placeholder={placeholder || ""}
            disabled={disabled}
            onChange={e => textModel.set(e.target.value)}/>)
-
-////////////////////////////////////////////////////////////////////////////////
-
-const Counter = countModel =>
-  countModel.map(count =>
-    <div>
-      Counter value is: {count}
-      <div>
-        <button onClick={_ => countModel.set(count+1)}>+</button>
-        <button onClick={_ => countModel.set(count-1)}>-</button>
-      </div>
-    </div>)
-
-////////////////////////////////////////////////////////////////////////////////
-
-const ThreeCounters = sharedCountModel =>
-  Bacon.combineTemplate({
-    counter1: Counter(sharedCountModel),
-    counter2: Counter(sharedCountModel),
-    counter3: Counter(Model(1))
-  }).map(s =>
-    <div>
-      {s.counter1}
-      {s.counter2}
-      {s.counter3}
-    </div>)
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -183,13 +159,13 @@ export default () => {
   const pages =
     [{value: "Counter",
       path: "/page/counter",
-      DOMs: Counter(Model(0))},
+      DOMs: Counter.WebControl(Counter.Model(0))},
      {value: "ClassyCounter",
       path: "/page/classy-counter",
       DOMs: ClassyCounter(Model(0))},
      {value: "ThreeCounters",
       path: "/page/three-counters",
-      DOMs: ThreeCounters(Model(0))},
+      DOMs: ThreeCounters.WebControl(ThreeCounters.Model(0))},
      {value: "BMI",
       path: "/page/bmi",
       DOMs: BMI.WebControl(BMI.Model())},
