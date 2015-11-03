@@ -7,25 +7,9 @@ import * as ThreeWayBMI from "./components/three-way-bmi"
 import * as BMI from "./components/bmi"
 import * as Counter from "./components/counter"
 import * as ThreeCounters from "./components/three-counters"
+import OptionSelect from "./components/option-select"
 
 ////////////////////////////////////////////////////////////////////////////////
-
-const EnumSelectInput = (alts, selModel) => {
-  const options = alts
-    .map(alt =>
-       <option key={alt.value}
-               value={alt.value}>
-         {alt.value}
-       </option>)
-
-  return selModel.map(alt =>
-    <select value={alt.value}
-            onChange={e =>
-             selModel.set(alts[
-               findIndex(alts,
-                         alt => alt.value === e.target.value)])}>
-      {options}
-    </select>)}
 
 const Checkbox = boolModel =>
   boolModel.map(bool =>
@@ -103,15 +87,16 @@ const ComponentList = componentsModel => {
   const componentList =
     componentsModel.flatMapLatest(
       components =>
-        Bacon.combineAsArray(components)
-        .map(componentDOMs =>
+        Bacon.combineWith(
+          components,
+          (...componentDOMs) =>
           <ul>
             {(i => map(componentDOMs, componentDOM =>
                <li key={i++}>{componentDOM}</li>))(0)}
           </ul>))
 
   return Bacon.combineWith(
-    EnumSelectInput(componentCreates, createAtom),
+    OptionSelect(Bacon.constant(componentCreates), createAtom),
     componentList,
     createAtom,
     (componentSelect, componentList, create) =>
@@ -185,7 +170,8 @@ export default () => {
     return Math.max(0, findIndex(pages, p => path === p.path))
   }
   const pageAtom = Atom(pages[pageIndexOfLocation()])
-  const pageSelectDOMs = EnumSelectInput(pages, pageAtom)
+  const pageSelectDOMs =
+    OptionSelect(Bacon.constant(pages), pageAtom)
 
   window.onpopstate = e => pageAtom.set(pages[pageIndexOfLocation()])
 
