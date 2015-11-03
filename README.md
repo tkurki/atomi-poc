@@ -1,6 +1,6 @@
 This is a proof-of-concept demo repository of Atomi&mdash;concise reactive web.
 
-## Quickstart 
+## Quickstart
 
 ```bash
 git clone https://github.com/VesaKarvonen/atomi-poc.git
@@ -16,22 +16,21 @@ Then open browser at [http://localhost:3000/](http://localhost:3000/).
 Here is *all* the code required to implement a counter component:
 
 ```js
-const Counter = countAtom =>
-  countAtom.map(n =>
+const Counter = countModel =>
+  countModel.map(n =>
     <div>
       Counter value is: {n}
       <div>
-        <button onClick={e => countAtom.modify(n => n+1)}>+</button>
-        <button onClick={e => countAtom.modify(n => n-1)}>-</button>
+        <button onClick={e => countModel.modify(n => n+1)}>+</button>
+        <button onClick={e => countModel.modify(n => n-1)}>-</button>
       </div>
     </div>)
 ```
 
-To use the component one simply passes it an atom, the model, containing the
-count:
+To use the component one simply passes it a model containing the count:
 
 ```js
-const counterDOMs = Counter(Atom(0))
+const counterDOMs = Counter(Model(0))
 ```
 
 The result is a *stream of React Virtual
@@ -48,11 +47,11 @@ own model or share a model with some other component.  Here is an example with
 three counters:
 
 ```js
-const ThreeCounters = sharedCountAtom =>
+const ThreeCounters = sharedCountModel =>
   Bacon.combineTemplate({
-    counter1: Counter(sharedCountAtom),
-    counter2: Counter(sharedCountAtom),
-    counter3: Counter(Atom(1))
+    counter1: Counter(sharedCountModel),
+    counter2: Counter(sharedCountModel),
+    counter3: Counter(Model(1))
   }).map(s =>
     <div>
       {s.counter1}
@@ -67,15 +66,15 @@ the `ThreeCounters` component also encapsulates local state.
 
 ## Atomi
 
-An atom, by itself, represents *first-class state*.  The state is exposed in the
-form of a *stream of values* and the state can be mutated via the `modify`
-operation.
+An atom, or `Model`, by itself, represents *first-class state*.  The state is
+exposed in the form of a *stream of values* and the state can be mutated via the
+`modify` operation.
 
-An atom can be implemented in just a few lines of code.  Here is a POC
-implementation of `Atom` using [Bacon.js](https://github.com/baconjs/bacon.js/):
+It can be implemented in just a few lines of code.  Here is a POC implementation
+using [Bacon.js](https://github.com/baconjs/bacon.js/):
 
 ```js
-function Atom(initial) {
+function Model(initial) {
   const bus = new Bacon.Bus()
   const stream = bus.scan(initial, (state, fn) => fn(state))
   stream.modify = fn => bus.push(fn)
@@ -119,10 +118,11 @@ refactoring
 [sample code](https://gist.github.com/milankinen/3f045eaf840afd12fefb) that
 Matti provided.
 
-The `Atom` abstraction is a minimum effort way to bring a model similar to what
-can be found in [Reagent](https://reagent-project.github.io/), which implements
-a simpler [SAC](http://www.umut-acar.org/self-adjusting-computation)-style
-(rather than FRP-style) abstraction without the concept of time, and WebSharper
+The atom, or `Model`, abstraction is a minimum effort way to bring a model
+similar to what can be found in [Reagent](https://reagent-project.github.io/),
+which implements a simpler
+[SAC](http://www.umut-acar.org/self-adjusting-computation)-style (rather than
+FRP-style) abstraction without the concept of time, and WebSharper
 [UI.Next](http://intellifactory.github.io/websharper.ui.next.samples), which
 takes the idea even further in the form of reactive (rather than just virtual)
 DOM.
