@@ -2,7 +2,9 @@ import React from "react"
 import Bacon from "baconjs"
 import {Model} from "bacon.model"
 import {findIndex, flatten, map} from "lodash"
+
 import * as ThreeWayBMI from "./components/three-way-bmi"
+import * as BMI from "./components/bmi"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -113,46 +115,12 @@ const Login = ({usernameModel, passwordModel, loginStatusStream, login, logout})
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const BMIModel = () => {
-  const weightModel = Model(70)
-  const heightModel = Model(170)
-  return {weightModel,
-          heightModel,
-          bmiStream: Bacon.combineWith(weightModel, heightModel, (w, h) =>
-                                       Math.round(w/(h * h * 0.0001)))}
-}
-
-const BMI = ({weightModel, heightModel, bmiStream}) => {
-  const Slider = (title, units, min, max, atom) =>
-    atom.map(value =>
-      <div>
-        {title}: {value}{units}
-        <div>
-          <input type="range" min={min} max={max} value={value}
-             onChange={e => atom.set(e.target.value)}/>
-        </div>
-      </div>)
-
-  return Bacon.combineWith(
-    Slider("Weight", "kg", 40, 140, weightModel),
-    Slider("Height", "cm", 140, 210, heightModel),
-    bmiStream,
-    (weightSlider, heightSlider, bmi) =>
-      <div>
-        {weightSlider}
-        {heightSlider}
-        BMI: {bmi}
-      </div>)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 const ComponentList = componentsModel => {
   const componentCreates =
     [{value: "ClassyCounter",
       create: () => ClassyCounter(Model(0))},
      {value: "BMI",
-      create: () => BMI(BMIModel())}]
+      create: () => BMI.WebControl(BMI.Model())}]
 
   const createModel = Model(componentCreates[0])
 
@@ -224,7 +192,7 @@ export default () => {
       DOMs: ThreeCounters(Model(0))},
      {value: "BMI",
       path: "/page/bmi",
-      DOMs: BMI(BMIModel())},
+      DOMs: BMI.WebControl(BMI.Model())},
      {value: "3-way BMI",
       path: "/page/3-way-bmi",
       DOMs: ThreeWayBMI.WebControl(ThreeWayBMI.Model())},
