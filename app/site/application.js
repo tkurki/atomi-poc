@@ -166,22 +166,18 @@ export default () => {
     return Math.max(0, findIndex(pages, p => path === p.path))
   }
   const pageAtom = Atom(pages[pageIndexOfLocation()])
-  const pageSelectDOMs =
-    OptionSelect(Bacon.constant(pages), pageAtom)
 
   window.onpopstate = e => pageAtom.set(pages[pageIndexOfLocation()])
 
-  return pageAtom
-    .flatMapLatest(page => {
-      if (document.location.pathname !== page.path)
-        window.history.pushState(null, "", page.path)
-      return Bacon.combineWith(
-        pageSelectDOMs, page.DOMs,
-        (pageSelectDOM, pageDOM) =>
-          <div>
-            {pageSelectDOM}
-            <hr/>
-            {pageDOM}
-          </div>)
-    })
+  pageAtom.onValue(page => {
+    if (document.location.pathname !== page.path)
+      window.history.pushState(null, "", page.path)
+  })
+
+  return Bacon.combineTemplate(
+    <div>
+      {OptionSelect(Bacon.constant(pages), pageAtom)}
+      <hr/>
+      {pageAtom.flatMapLatest(page => page.DOMs)}
+    </div>)
 }
