@@ -95,16 +95,12 @@ const ComponentList = componentsModel => {
                <li key={i++}>{componentDOM}</li>))(0)}
           </ul>))
 
-  return Bacon.combineWith(
-    OptionSelect(Bacon.constant(componentCreates), createAtom),
-    componentList,
-    createAtom,
-    (componentSelect, componentList, create) =>
+  return Bacon.combineTemplate(
       <div>
-        {componentSelect}
+        {OptionSelect(Bacon.constant(componentCreates), createAtom)}
         <button
            onClick={_ =>
-             componentsModel.modify(cs => cs.concat(create.create()))}>
+             componentsModel.modify(cs => cs.concat(createAtom.get().create()))}>
           Create New
         </button>
         {componentList}
