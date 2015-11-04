@@ -75,6 +75,32 @@ const Login = ({usernameAtom, passwordAtom, loginStatusStream, login, logout}) =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const DivClass = React.createClass({
+  componentDidMount: function() {
+    this.props.didMount()
+  },
+  componentDidUpdate: function() {
+    this.props.didUpdate()
+  },
+  render: function() {
+    return <div>{this.props.children}</div>
+  }
+})
+
+const ClassyCounter = countModel =>
+  countModel.map(count =>
+    <DivClass
+      didMount={() => console.log("componentDidMount!")}
+      didUpdate={() => console.log("componentDidUpdate!")}>
+      Counter value is: {count}
+      <div>
+        <button onClick={_ => countModel.set(count+1)}>+</button>
+        <button onClick={_ => countModel.set(count-1)}>-</button>
+      </div>
+    </DivClass>)
+
+////////////////////////////////////////////////////////////////////////////////
+
 const ComponentList = componentsModel => {
   const componentCreates =
     [{value: "ClassyCounter",
@@ -109,34 +135,7 @@ const ComponentList = componentsModel => {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const DivClass = React.createClass({
-  componentDidMount: function() {
-    this.props.didMount()
-  },
-  componentDidUpdate: function() {
-    this.props.didUpdate()
-  },
-  render: function() {
-    return <div>{this.props.children}</div>
-  }
-})
-
-const ClassyCounter = countModel =>
-  countModel.map(count =>
-    <DivClass
-      didMount={() => console.log("componentDidMount!")}
-      didUpdate={() => console.log("componentDidUpdate!")}>
-      Counter value is: {count}
-      <div>
-        <button onClick={_ => countModel.set(count+1)}>+</button>
-        <button onClick={_ => countModel.set(count-1)}>-</button>
-      </div>
-    </DivClass>)
-
-////////////////////////////////////////////////////////////////////////////////
-
 export default () => {
-
   const pages =
     [{value: "Counter",
       path: "/page/counter",
